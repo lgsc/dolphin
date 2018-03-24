@@ -3,11 +3,13 @@ from bs4 import BeautifulSoup
 import urllib
 import pandas as pd
 import logging
+import click
 import time
 import os
 
 
 log = logging.getLogger(__name__)
+
 
 def make_soup(url):
     thepage = urllib.request.urlopen(url)
@@ -18,29 +20,29 @@ def make_soup(url):
 
 
 def find_block_fips(soup_string):
-    block_fips = soup_string.split('"></bloc',1)[0]
-    return block_fips.split('fips="',1)[1]
+    block_fips = soup_string.split('"></bloc', 1)[0]
+    return block_fips.split('fips="', 1)[1]
 
 
 def find_state_code(soup_string):
-    state_code = soup_string.split('state code="',1)[1]
-    return state_code.split('"',1)[0]
+    state_code = soup_string.split('state code="', 1)[1]
+    return state_code.split('"', 1)[0]
 
 
 def find_state_name(soup_string):
-    state_name = soup_string.split('name="',1)[1]
-    state_name = state_name.split('name="',1)[1]
-    state_name = state_name.split('"></state>',1)[0]
+    state_name = soup_string.split('name="', 1)[1]
+    state_name = state_name.split('name="', 1)[1]
+    state_name = state_name.split('"></state>', 1)[0]
     return state_name
 
 
 def find_county_name(soup_string):
-    county_name = soup_string.split('name="',1)[1]
-    return county_name.split('"',1)[0]
+    county_name = soup_string.split('name="', 1)[1]
+    return county_name.split('"', 1)[0]
 
 
 def get_block_data(row_id, latitude, longitude):
-    url=('https://geo.fcc.gov/api/census/' + 'block/find?' +
+    url = ('https://geo.fcc.gov/api/census/' + 'block/find?' +
         'latitude={lat}&longitude={long}'.format(
             lat=latitude,
             long=longitude))
@@ -59,36 +61,27 @@ def get_block_data(row_id, latitude, longitude):
     return data_dict
 
 
-def main():
+def
+
+
+@click.command()
+@click.option('--file_path', required=True)
+@click.option('--start_id')
+@click.option('--end_id')
+def main(file_path, start_id, end_id):
     logging.basicConfig(level=logging.INFO)
 
-    os.chdir('/Users/Gustavo/Desktop')
-    raw_data = pd.read_csv('geo_data/mapa_del_crimen.csv')
-    # log.info(raw_data)
-
-    start_id = 5001
-    end_id = 20000
+    raw_data = pd.read_csv(file_path)
+    start_id = int(start_id)
+    end_id = int(end_id)
 
     raw_data = raw_data.loc[(raw_data['row_id'] >= start_id)
         & (raw_data['row_id'] <= end_id)]
 
-    # raw_data = raw_data[:50000]
-
-    # -----------
-    #  THIS NEED TO BE PULLED OUT AS A FUNCTION
     list_of_data = list()
-    log_thresh = 100
-    inc = log_thresh
     t0 = time.time()
-    for index, row in raw_data.iterrows():
-        # when to log
-        if (index + 1) == log_thresh:
-            now = time.time()
-            run_time = now-t0
-            log.info('Finished {count} Rows, Run Time: {time} seconds'.format(
-                count=log_thresh, time=round(run_time, 2)))
-            log_thresh += inc
 
+    for index, row in raw_data.iterrows():
         try:
             dat = get_block_data(
                 row_id=row['row_id'],
@@ -105,16 +98,17 @@ def main():
             pass
 
     t1 = time.time()
-    total = t1-t0
+    total = t1 - t0
     log.info('Total Run Time: {time} seconds | {min} minutes'.format(
         time=round(total, 2),
-        min=round(total/60, 2)))
+        min=round(total / 60, 2)))
 
-    os.chdir('/Users/Gustavo/Desktop')
     data = pd.DataFrame(list_of_data)
-    log.info('Writing {num} data point'.format(num=len(data)))
-    data.to_csv('geo_data/results/geo_results_{start_id}_to_{end_id}.csv'.format(
-        start_id=start_id, end_id=end_id))
+    log.info('Writing {num} data point(s)'.format(num=len(data)))
+
+    data.to_csv(/ '.join(file_path.split(' /')[:-1]) +
+                '/results_{start_id}_to_{end_id}.csv'.format(
+                start_id = start_id, end_id = end_id))
 
 
 if __name__ == '__main__':

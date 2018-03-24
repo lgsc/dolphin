@@ -10,10 +10,15 @@ def main():
         requirements = reqs.read().strip().split('\n')
 
     setup(
-        version="0.0.0",
         name="dolphin",
+        version='0.1.0',
+        py_modules=['find_blocks'],
         packages=find_packages(),
-        install_requires=requirements
+        install_requires=requirements,
+        entry_points='''
+            [console_scripts]
+            findBlocks=dolphin.find_blocks:main
+        '''
     )
 
 
