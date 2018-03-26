@@ -1,11 +1,9 @@
-import urllib.request
 from bs4 import BeautifulSoup
 import urllib
 import pandas as pd
 import logging
 import click
 import time
-import os
 
 
 log = logging.getLogger(__name__)
@@ -43,9 +41,8 @@ def find_county_name(soup_string):
 
 def get_block_data(row_id, latitude, longitude):
     url = ('https://geo.fcc.gov/api/census/' + 'block/find?' +
-        'latitude={lat}&longitude={long}'.format(
-            lat=latitude,
-            long=longitude))
+           'latitude={lat}&longitude={long}'.format(
+                lat=latitude, long=longitude))
 
     soup = make_soup(url)
 
@@ -61,13 +58,10 @@ def get_block_data(row_id, latitude, longitude):
     return data_dict
 
 
-def
-
-
 @click.command()
 @click.option('--file_path', required=True)
-@click.option('--start_id')
-@click.option('--end_id')
+@click.option('--start_id', required=True)
+@click.option('--end_id', required=True)
 def main(file_path, start_id, end_id):
     logging.basicConfig(level=logging.INFO)
 
@@ -75,8 +69,8 @@ def main(file_path, start_id, end_id):
     start_id = int(start_id)
     end_id = int(end_id)
 
-    raw_data = raw_data.loc[(raw_data['row_id'] >= start_id)
-        & (raw_data['row_id'] <= end_id)]
+    raw_data = raw_data.loc[
+        (raw_data['row_id'] >= start_id) & (raw_data['row_id'] <= end_id)]
 
     list_of_data = list()
     t0 = time.time()
@@ -106,9 +100,9 @@ def main(file_path, start_id, end_id):
     data = pd.DataFrame(list_of_data)
     log.info('Writing {num} data point(s)'.format(num=len(data)))
 
-    data.to_csv(/ '.join(file_path.split(' /')[:-1]) +
+    data.to_csv('/'.join(file_path.split(' /')[:-1]) +
                 '/results_{start_id}_to_{end_id}.csv'.format(
-                start_id = start_id, end_id = end_id))
+                start_id=start_id, end_id=end_id))
 
 
 if __name__ == '__main__':
